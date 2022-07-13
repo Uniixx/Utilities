@@ -103,7 +103,7 @@ local function remove(prompt)
 end
 
 local function IsTable(val)
-    return type(val) == "table"
+    return type(val) ~= "table"
 end
 
 -- Functions
