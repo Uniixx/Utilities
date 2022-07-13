@@ -150,9 +150,7 @@ end
 
 Inviter.Prompt = function(invite)
     if not IsTable(invite) then
-        error(
-            "Something went wrong. Please verify that the format is <module>.Prompt(<table> { <string> invite, <string> name -- optional, <string> color -- optional })."
-        )
+        error("Something went wrong. Please verify that the format is <module>.Prompt(<table> { <string> invite, <string> name -- optional, <string> color -- optional }).")
         return
     end
 
