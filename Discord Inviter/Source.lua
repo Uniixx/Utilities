@@ -13,17 +13,17 @@ local Inviter = { Connections = {} }
 
 -- Misc Functions
 
-local function getCode(invite)
-	if string.find(invite, "/") then
-		for i = #invite, 1, -1 do
-			local char = string.sub(invite, i, i)
-			if char == "/" then
-				return string.sub(invite, i + 1, #invite)
+local function removeFromString(val, toRemove)
+	if string.find(val, toRemove) then
+		for i = #val, 1, -1 do
+			local char = string.sub(val, i, i)
+			if char == toRemove then
+				return string.sub(val, i + 1, #val)
 			end
 		end
 	end
 
-	return invite
+	return val
 end
 
 local function toggle(prompt, bool)
@@ -82,11 +82,20 @@ local function remove(prompt)
 	prompt = nil
 end
 
+local function IsTable(val) 
+    return type(val) == "table"
+end
+
 -- Functions
 
 Inviter.Join = function(invite)
+    if IsTable(invite) then
+        error("Something went wrong. Please verify that the format is <module>.Join(<string> invite).")
+        return
+    end
+    
 	local success, inviteData = pcall(function()
-		return HS:JSONDecode(Exploit.Request({ Url = "https://ptb.discord.com/api/invites/".. getCode(invite), Method = "GET" }).Body)
+		return HS:JSONDecode(Exploit.Request({ Url = "https://ptb.discord.com/api/invites/".. removeFromString(invite, "/"), Method = "GET" }).Body)
 	end)
 	
 	if success then
@@ -109,14 +118,32 @@ Inviter.Join = function(invite)
 end
 
 Inviter.Prompt = function(invite)
+    if not IsTable(invite) then
+        error("Something went wrong. Please verify that the format is <module>.Prompt(<table> { <string> invite, <string> name -- optional, <string> color -- optional }).")
+        return
+    end
+    
+    local inviteCode = invite["invite"]
+    
 	local success, inviteData = pcall(function()
-		return HS:JSONDecode(Exploit.Request({ Url = "https://ptb.discord.com/api/invites/".. getCode(invite), Method = "GET" }).Body)
+		return HS:JSONDecode(Exploit.Request({ Url = "https://ptb.discord.com/api/invites/".. removeFromString(inviteCode, "/"), Method = "GET" }).Body)
 	end)
-
-	--if not success then
-		--error("Something went wrong while attempting to obtain invite data. Check if invite is valid.")
-		--return
-	--end
+	
+	if not success then
+		error("Something went wrong while attempting to obtain invite data. Check if invite is valid.")
+		return
+	end
+	
+	local ServerName = inviteData.guild.name
+	local Color = "ff0000"
+	
+	if invite["name"] and invite["name"] ~= "" then
+	    ServerName = invite["name"]
+	end
+	
+	if invite["color"] and invite["color"] ~= "" then
+	    Color = removeFromString(invite["color"], "#")
+	end
 	
 	local Prompt = { Invite = inviteData.code }
 
@@ -203,9 +230,16 @@ Inviter.Prompt = function(invite)
 
 	-- Scripts
 
-	Prompt.Frame.ServerIcon.Image = UI.LoadCustomAsset("https://cdn.discordapp.com/icons/".. inviteData.guild.id.. "/".. inviteData.guild.icon.. ".png")
-	Prompt.Frame.ServerName.Text = inviteData.guild.name
-	Prompt.Frame.Join.Text = "Join ".. inviteData.guild.name
+    local guildNameParsed = ServerName:gsub(" ", "+")
+    local imageUrl = "https://ui-avatars.com/api/?color=" .. Color .."&name=" .. guildNameParsed
+
+    if inviteData.guild.icon then
+        imageUrl = "https://cdn.discordapp.com/icons/".. inviteData.guild.id.. "/".. inviteData.guild.icon.. ".png"
+    end
+    
+    Prompt.Frame.ServerIcon.Image = UI.LoadCustomAsset(imageUrl)
+	Prompt.Frame.ServerName.Text = ServerName
+	Prompt.Frame.Join.Text = "Join ".. ServerName
 	Prompt.Frame.Parent = Inviter.Gui
 
 	toggle(Prompt, true)
@@ -221,7 +255,7 @@ Inviter.Prompt = function(invite)
 	end)
 
 	connections.joinClick = Prompt.Frame.Join.Activated:Connect(function()
-		task.spawn(Inviter.Join, getCode(invite))
+		task.spawn(Inviter.Join, removeFromString(invite["invite"]))
 
 		disconnect(Prompt)
 		toggle(Prompt, false)
@@ -251,5 +285,10 @@ Inviter.Gui = UI.Create("ScreenGui", {
 })
 
 Inviter.Gui.Parent = CG
+
+Inviter.Prompt({
+    invite = "GWK8xbEP",
+    color = "#5AD2F4"
+})
 
 return Inviter
