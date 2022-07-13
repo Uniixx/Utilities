@@ -113,10 +113,10 @@ Inviter.Prompt = function(invite)
 		return HS:JSONDecode(Exploit.Request({ Url = "https://ptb.discord.com/api/invites/".. getCode(invite), Method = "GET" }).Body)
 	end)
 
-	if not success then
-		error("Something went wrong while attempting to obtain invite data. Check if invite is valid.")
-		return
-	end
+	--if not success then
+		--error("Something went wrong while attempting to obtain invite data. Check if invite is valid.")
+		--return
+	--end
 	
 	local Prompt = { Invite = inviteData.code }
 
