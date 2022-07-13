@@ -367,11 +367,4 @@ Inviter.Gui =
 
 Inviter.Gui.Parent = CG
 
-Inviter.Prompt(
-    {
-        invite = "GWK8xbEP",
-        color = "#5AD2F4"
-    }
-)
-
 return Inviter
