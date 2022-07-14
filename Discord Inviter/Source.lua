@@ -320,7 +320,7 @@ Inviter.Prompt = function(invite)
     connections.joinClick =
         Prompt.Frame.Join.Activated:Connect(
         function()
-            task.spawn(Inviter.Join, removeFromString(invite["invite"], "/"))
+            task.spawn(Inviter.Join, inviteData.code)
 
             disconnect(Prompt)
             toggle(Prompt, false)
